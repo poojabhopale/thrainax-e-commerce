@@ -7,7 +7,7 @@
  */
 import type { CartItem, Order, OrderStatus, Product, Role, User } from "./types";
 
-const BASE_URL = import.meta.env.VITE_API_URL as string | undefined;
+const BASE_URL = import.meta.env['VITE_API_URL'] as string | undefined;
 
 export interface AuthResponse {
   token: string;
@@ -70,7 +70,7 @@ function seed(): MockDb {
     description,
     price,
     stock,
-    imageColor: COLORS[i % COLORS.length],
+    imageColor: COLORS[i % COLORS.length]!,
   }));
   return {
     users: [
@@ -166,7 +166,11 @@ export const api = {
     if (!useMock) return http<Product>("/admin/products", { method: "POST", body: JSON.stringify(input) });
     const d = db();
     requireAdmin(d);
-    const product: Product = { id: ++d.seq, imageColor: COLORS[d.products.length % COLORS.length], ...input };
+    const product: Product = {
+      ...input,
+      id: ++d.seq,
+      imageColor: COLORS[d.products.length % COLORS.length]!,
+    };
     d.products.push(product);
     save(d);
     return product;
@@ -178,9 +182,9 @@ export const api = {
     requireAdmin(d);
     const idx = d.products.findIndex((p) => p.id === id);
     if (idx < 0) throw new Error("Product not found.");
-    d.products[idx] = { ...d.products[idx], ...input };
+    d.products[idx] = { ...d.products[idx]!, ...input };
     save(d);
-    return d.products[idx];
+    return d.products[idx]!;
   },
 
   deleteProduct: async (id: number): Promise<void> => {
@@ -250,7 +254,7 @@ export const api = {
     const u = currentUser(d);
     d.carts[u.id] = (d.carts[u.id] ?? []).filter((i) => i.id !== itemId);
     save(d);
-    return d.carts[u.id];
+    return d.carts[u.id]!;
   },
 
   placeOrder: async (input: { address: string; phone: string }): Promise<Order> => {
